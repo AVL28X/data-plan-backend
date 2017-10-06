@@ -1,1 +1,1 @@
-public class utilities{    public enum UserType{        LIGHT, MODERATE, HEAVY    }}
+public class utilities{}
