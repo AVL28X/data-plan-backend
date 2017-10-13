@@ -42,6 +42,10 @@ public class User {
     }
 
 
+    public UserType getUserType(){
+        return Utilities.calculateUserType(this, this.currentDataPlan);
+    }
+
     public DataPlan getRecommendedPlan(List<DataPlan> dataPlans){
         return getRecommendedPlan((DataPlan[]) dataPlans.toArray());
     }

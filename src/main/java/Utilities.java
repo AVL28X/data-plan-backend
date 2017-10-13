@@ -54,6 +54,61 @@ public class Utilities {
         }
         return utility;
     }
+
+    /**
+     * calculate dynamic programming optimal usages (Corollary 1 in the paper)
+     * @param u
+     * @param dp
+     * @return
+     */
+    public static double[] getOptimalUsages(User u, DataPlan dp){
+        double[] usages = new double[30];
+        User.UserType userType = calculateUserType(u, dp);
+        if(userType == User.UserType.LIGHT) {
+            for(int i = 0; i < u.dailyWeights.length; i++)
+                usages[i] = Math.pow(u.dailyWeights[i] / u.phi, 1 / u.alpha);
+        }else if(userType == User.UserType.HEAVY){
+            for(int i = 0; i < u.dailyWeights.length; i++)
+                usages[i] = Math.pow(u.dailyWeights[i] / ( u.phi + dp.overage), 1 / u.alpha);
+        }else{//moderate usage
+            double sum = 0;
+            for(int i = 0; i < u.dailyWeights.length; i++)
+                sum += Math.pow(u.dailyWeights[i], 1 / u.alpha);
+            for(int i = 0; i < u.dailyWeights.length; i++)
+                usages[i] = dp.quota * Math.pow(u.dailyWeights[i], 1 / u.alpha) / sum;
+        }
+        return usages;
+    }
+
+
+    /**
+     * calculate ISP profit
+     * @param dp
+     * @param sigma
+     * @param users
+     * @return
+     */
+    public static double ISPProfit(DataPlan dp, double sigma, User[] users){
+        double profit = 0;
+        for(int i = 0; i < users.length; i++){
+            User user = users[i];
+            User.UserType userType = calculateUserType(user, dp);
+            if(userType == User.UserType.LIGHT){
+                double usage = 0;
+                for(int j = 0; j < user.dailyWeights.length; j++)
+                    usage += Math.pow(user.dailyWeights[j] / user.phi, 1 / user.alpha);
+                profit += dp.price - sigma * usage;
+            }else if(userType == User.UserType.HEAVY){
+                double usage = 0;
+                for(int j = 0; j < user.dailyWeights.length; j++)
+                    usage += Math.pow(user.dailyWeights[j] / (dp.overage + user.phi), 1 / user.alpha);
+                profit += dp.price + dp.overage * (usage - dp.quota) - sigma * usage;
+            }else{//moderate usage
+                profit += (dp.price - sigma * dp.quota);
+            }
+        }
+        return profit;
+    }
 }
 
 
