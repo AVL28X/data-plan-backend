@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "";
+option java_outer_classname = "DataPlanProto";
+option objc_class_prefix = "DP";
+
+
+// The data plan service
+service DataPlanService {
+  // Sends a greeting
+  rpc GetUserParam (UserParamRequest) returns (UserParams) {}
+}
+
+// The request message containing daily usages and overage rate
+message UserParamRequest {
+  repeated Usage usages = 1;
+  double overage = 2;  // if overage > 0, heavy user, otherwise light user
+}
+
+message Usage {
+  int32 year = 2;
+  int32 month = 3;
+  int32 day = 4;
+  double usage = 1;
+
+}
+
+message UserParams {
+  double w1 = 1; //weights of each day of week
+  double w2 = 2;
+  double w3 = 3;
+  double w4 = 4;
+  double w5 = 5;
+  double w6 = 6;
+  double w7 = 7;
+  double phi = 8; // pi
+  double alpha = 9; //alpha
+}

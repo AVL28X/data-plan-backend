@@ -32,6 +32,14 @@ public class UserParamFitter {
         return Arrays.copyOfRange(params, 0, 6);
     }
 
+    public double getDailyWeight(int dayOfWeek){
+        if(dayOfWeek == 6)
+            return 1.0 / 4 - getSumWeight(this.params);
+        else
+            return params[dayOfWeek % 7];
+
+    }
+
     public double getPhi(){
         return params[6];
     }
