@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Server that manages startup/shutdown of a {@code Greeter} server.
+ * Server that manages startup/shutdown of a server.
  */
 public class DataPlanServer {
     private static final Logger logger = Logger.getLogger(DataPlanServer.class.getName());
@@ -101,6 +101,29 @@ public class DataPlanServer {
             }catch (Exception e){
 
             }
+        }
+
+        @Override
+        public void getRecommendUsages(RecommendUsagesRequest request, StreamObserver<UsagesResponse> responseObserver) {
+            //create data plan and user from request
+            DataPlan dp = new DataPlan(
+                    request.getDataPlan().getQuota(),
+                    request.getDataPlan().getOverage(),
+                    request.getDataPlan().getQuota());
+
+            //set up daily weights
+            Date[] dates = Utilities.daysOfMonth(request.getYear(), request.getMonth());
+            double[] weights = new double[dates.length];
+            for(int i = 0; i < weights.length; i++){
+                if(dates[i])
+            }
+
+            User user = new User()
+        }
+
+        @Override
+        public void getUtility(UtilityRequest request, StreamObserver<UtilityResponse> responseObserver) {
+            super.getUtility(request, responseObserver);
         }
     }
 

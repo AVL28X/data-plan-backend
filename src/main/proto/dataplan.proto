@@ -8,8 +8,9 @@ option objc_class_prefix = "DP";
 
 // The data plan service
 service DataPlanService {
-  // Sends a greeting
-  rpc GetUserParam (UserParamRequest) returns (UserParams) {}
+  rpc GetUserParam (UserParamRequest) returns (UserParams) {} //service to calibrate user parameters
+  rpc GetRecommendUsages (RecommendUsagesRequest) returns(UsagesResponse) {}  //service to recommend daily usages
+  rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){}
 }
 
 // The request message containing daily usages and overage rate
@@ -18,14 +19,7 @@ message UserParamRequest {
   double overage = 2;  // if overage > 0, heavy user, otherwise light user
 }
 
-message Usage {
-  int32 year = 2;
-  int32 month = 3;
-  int32 day = 4;
-  double usage = 1;
-
-}
-
+// user parameters
 message UserParams {
   double w1 = 1; //weights of each day of week
   double w2 = 2;
@@ -36,4 +30,44 @@ message UserParams {
   double w7 = 7;
   double phi = 8; // pi
   double alpha = 9; //alpha
+}
+
+message UsagesRequest{
+  UserParams userParams = 1;
+  DataPlanMsg dataPlan = 2;
+}
+
+message RecommendUsagesRequest{
+  int32 year = 1;
+  int32 month = 2;
+  UserParams userParams = 3;
+  DataPlanMsg dataPlan = 4;
+}
+
+message UtilityRequest{
+  UserParams userParam = 1;
+  DataPlanMsg dataPlan = 2;
+}
+
+message UtilityResponse{
+  double utility = 1;
+}
+
+message UsagesResponse{
+  repeated Usage usages = 1;
+}
+
+message DataPlanMsg{
+  double quota = 1;
+  double overage = 2;
+  double price = 3;
+}
+
+
+//object of daily usage
+message Usage {
+  int32 year = 2;
+  int32 month = 3;
+  int32 day = 4;
+  double usage = 1;
 }

@@ -65,7 +65,7 @@ public class DataPlanClient {
       Usage usage = Usage.newBuilder().setUsage(usages[i]).setDay(date.getDay()).setMonth(date.getMonth()).setYear(date.getYear()).build();
       builder.addUsages(usage);
     }
-    builder.setOverage(0);
+    builder.setOverage(0.01);
 
 
     return builder.build();
@@ -76,7 +76,7 @@ public class DataPlanClient {
    * greeting.
    */
   public static void main(String[] args) throws Exception {
-    DataPlanClient client = new DataPlanClient("localhost", 50051);
+    DataPlanClient client = new DataPlanClient("rpc.chenxi.io", 50051);
     try {
       UserParamRequest request = createUserParamRequest();
       UserParams response = client.blockingStub.getUserParam(request);

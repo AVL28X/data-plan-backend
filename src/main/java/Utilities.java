@@ -1,3 +1,6 @@
+import java.util.Calendar;
+import java.util.Date;
+
 public class Utilities {
 
     /**
@@ -62,7 +65,7 @@ public class Utilities {
      * @return
      */
     public static double[] getOptimalUsages(User u, DataPlan dp){
-        double[] usages = new double[30];
+        double[] usages = new double[u.dailyWeights.length];
         User.UserType userType = calculateUserType(u, dp);
         if(userType == User.UserType.LIGHT) {
             for(int i = 0; i < u.dailyWeights.length; i++)
@@ -79,7 +82,6 @@ public class Utilities {
         }
         return usages;
     }
-
 
     /**
      * calculate ISP profit
@@ -108,6 +110,32 @@ public class Utilities {
             }
         }
         return profit;
+    }
+
+    public static Date[] daysOfMonth(int year, int month){
+        year -= 1900;
+        month -= 1;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(year, month, 1));
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        int myMonth=cal.get(Calendar.MONTH);
+        int len = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        Date[] days = new Date[len];
+        int count = 0;
+
+        while (myMonth==cal.get(Calendar.MONTH)) {
+            days[count] = (Date) cal.getTime().clone();
+            count++;
+            cal.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        return days;
+    }
+
+    public static void main(String[] args){
+        Date[] dates = daysOfMonth(2017, 2);
+        for(Date d : dates)
+            System.out.println(d);
     }
 
 }
