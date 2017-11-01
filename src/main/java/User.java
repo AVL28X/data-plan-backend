@@ -21,6 +21,11 @@ public class User {
         currentDataPlan = new DataPlan(1000, 0.005, 5.0);
     }
 
+    public User(double[] dailyWeights, DataPlan dp){
+        this.dailyWeights = dailyWeights;
+        this.currentDataPlan = dp;
+    }
+
     public double calculateUtility(){
         return Utilities.calculateDataPlanUtility(this, this.currentDataPlan);
     }
@@ -41,6 +46,21 @@ public class User {
         return bestDP;
     }
 
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
+    }
+
+    public double getPhi() {
+        return phi;
+    }
+
+    public void setPhi(double phi) {
+        this.phi = phi;
+    }
 
     public UserType getUserType(){
         return Utilities.calculateUserType(this, this.currentDataPlan);

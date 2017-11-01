@@ -53,7 +53,6 @@ public class Utilities {
                 utility += (u.alpha / (1 - u.alpha)) * Math.pow(u.dailyWeights[i], 1 / u.alpha) * Math.pow(u.phi + dp.overage, 1 - 1 / u.alpha);
             utility += dp.overage * dp.quota;
             utility -= dp.price;
-
         }
         return utility;
     }
@@ -132,10 +131,25 @@ public class Utilities {
         return days;
     }
 
-    public static void main(String[] args){
-        Date[] dates = daysOfMonth(2017, 2);
-        for(Date d : dates)
-            System.out.println(d);
+    public static int dayOfWeek(Date date){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+        dayOfWeek --;
+        if(dayOfWeek == 0)
+            dayOfWeek += 7;
+        return dayOfWeek;
+    }
+
+    public static void main(String[] args) {
+//        Date today = new Date();
+//        for (int i = 0; i < 7; i++) {
+//            Date date = new Date(today.getTime() + (1000 * 60 * 60 * 24 * i));
+//            System.out.println(dayOfWeek(date));
+//        }
+        Date[] dates = daysOfMonth(2017, 10);
+        for(int i = 0; i < dates.length; i++)
+            System.out.println(dates[i]);
     }
 
 }

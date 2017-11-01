@@ -11,6 +11,7 @@ service DataPlanService {
   rpc GetUserParam (UserParamRequest) returns (UserParams) {} //service to calibrate user parameters
   rpc GetRecommendUsages (RecommendUsagesRequest) returns(UsagesResponse) {}  //service to recommend daily usages
   rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){}
+  rpc HelloWorld( HWRequest) returns( HWResponse ){}
 }
 
 // The request message containing daily usages and overage rate
@@ -45,7 +46,7 @@ message RecommendUsagesRequest{
 }
 
 message UtilityRequest{
-  UserParams userParam = 1;
+  UserParams userParams = 1;
   DataPlanMsg dataPlan = 2;
 }
 
@@ -56,6 +57,15 @@ message UtilityResponse{
 message UsagesResponse{
   repeated Usage usages = 1;
 }
+
+message HWRequest{
+  string word = 1;
+}
+
+message HWResponse{
+  string word = 1;
+}
+
 
 message DataPlanMsg{
   double quota = 1;
