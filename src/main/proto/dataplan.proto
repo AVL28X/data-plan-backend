@@ -11,6 +11,7 @@ service DataPlanService {
   rpc GetUserParam (UserParamRequest) returns (UserParams) {} //service to calibrate user parameters
   rpc GetRecommendUsages (RecommendUsagesRequest) returns(UsagesResponse) {}  //service to recommend daily usages
   rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){}
+  rpc GetRecommendedDataPlans( DataPlanRequest ) returns( DataPlanResponse ){}
   rpc HelloWorld( HWRequest) returns( HWResponse ){}
 }
 
@@ -68,11 +69,22 @@ message HWResponse{
 
 
 message DataPlanMsg{
-  double quota = 1;
-  double overage = 2;
-  double price = 3;
+  string name = 1;
+  string description = 2;
+  double quota = 3;
+  double overage = 4;
+  double price = 5;
+
 }
 
+message DataPlanRequest{
+  UserParams userParams = 1;
+
+}
+
+message DataPlanResponse{
+  repeated DataPlanMsg dataPlans = 1;
+}
 
 //object of daily usage
 message Usage {

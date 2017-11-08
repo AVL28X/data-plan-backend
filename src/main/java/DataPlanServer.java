@@ -60,6 +60,46 @@ public class DataPlanServer {
         server.blockUntilShutdown();
     }
 
+    public static User convertUserParamsToUser(UserParams userParams){
+        double[] weights = new double[28];
+        for(int i = 0; i < weights.length; i++){
+            int dayOfWeek = i % 7;
+            if(dayOfWeek == 0)
+                dayOfWeek = 7;
+
+            switch (dayOfWeek){
+                case 1:
+                    weights[i] = userParams.getW1();
+                    break;
+                case 2:
+                    weights[i] = userParams.getW2();
+                    break;
+                case 3:
+                    weights[i] = userParams.getW3();
+                    break;
+                case 4:
+                    weights[i] = userParams.getW4();
+                    break;
+                case 5:
+                    weights[i] = userParams.getW5();
+                    break;
+                case 6:
+                    weights[i] = userParams.getW6();
+                    break;
+                case 7:
+                    weights[i] = userParams.getW7();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        User user = new User(weights);
+        user.setAlpha(userParams.getAlpha());
+        user.setPhi(userParams.getPhi());
+        return user;
+    }
+
     /**
      * Implementation of GetUserParams API
      */
@@ -101,6 +141,28 @@ public class DataPlanServer {
             }catch (Exception e){
 
             }
+        }
+
+        @Override
+        public void getRecommendedDataPlans(DataPlanRequest request, StreamObserver<DataPlanResponse> responseObserver) {
+            //Get available dataplans from server side
+            DataPlan[] dps = DataPlan.getDataPlansFromCSV("Data Plans.csv");
+            User user = convertUserParamsToUser(request.getUserParams());
+            DataPlan[] topDataPlans = Utilities.getTopDataPlans(user, dps, 5);
+
+            DataPlanResponse.Builder responseBuilder = DataPlanResponse.newBuilder();
+            for(int i = 0; i < topDataPlans.length; i++){
+                responseBuilder.addDataPlans(
+                        DataPlanMsg.newBuilder()
+                                .setDescription(topDataPlans[i].description)
+                                .setName(topDataPlans[i].name)
+                                .setQuota(topDataPlans[i].quota)
+                                .setOverage(topDataPlans[i].overage)
+                                .setPrice(topDataPlans[i].price).build()
+                );
+            }
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
         }
 
         @Override
@@ -171,45 +233,9 @@ public class DataPlanServer {
             System.out.println("Request: get utility");
             System.out.println(request);
 
-            double[] weights = new double[28];
-            for(int i = 0; i < weights.length; i++){
-                int dayOfWeek = i % 7;
-                if(dayOfWeek == 0)
-                    dayOfWeek = 7;
-
-                switch (dayOfWeek){
-                    case 1:
-                        weights[i] = request.getUserParams().getW1();
-                        break;
-                    case 2:
-                        weights[i] = request.getUserParams().getW2();
-                        break;
-                    case 3:
-                        weights[i] = request.getUserParams().getW3();
-                        break;
-                    case 4:
-                        weights[i] = request.getUserParams().getW4();
-                        break;
-                    case 5:
-                        weights[i] = request.getUserParams().getW5();
-                        break;
-                    case 6:
-                        weights[i] = request.getUserParams().getW6();
-                        break;
-                    case 7:
-                        weights[i] = request.getUserParams().getW7();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            User user = new User(weights, dp);
-            user.setAlpha(request.getUserParams().getAlpha());
-            user.setPhi(request.getUserParams().getPhi());
-
+            User user = convertUserParamsToUser(request.getUserParams());
+            user.currentDataPlan = dp;
             double utility = Utilities.calculateDataPlanUtility(user, dp);
-
             UtilityResponse response = UtilityResponse.newBuilder().setUtility(utility).build();
 
             responseObserver.onNext(response);

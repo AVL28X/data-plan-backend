@@ -1,5 +1,6 @@
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TreeMap;
 
 public class Utilities {
 
@@ -55,6 +56,29 @@ public class Utilities {
             utility -= dp.price;
         }
         return utility;
+    }
+
+    /**
+     * Get Top k dataplans
+     */
+
+    public static DataPlan[] getTopDataPlans(User user, DataPlan[] dps, int k){
+        TreeMap<Double, Integer> utilitiesMap = new TreeMap<Double, Integer>();
+        for(int i = 0; i < dps.length; i++){
+            double utility = calculateDataPlanUtility(user, dps[i]);
+            utilitiesMap.put(-utility, i);
+        }
+
+        DataPlan[] topDataPlans = new DataPlan[Math.min(dps.length, k)];
+        int i = 0;
+        for(Double utility : utilitiesMap.keySet()){
+            System.out.println("Utility: " + (-utility));
+            topDataPlans[i++] = dps[utilitiesMap.get(utility)];
+            System.out.println(topDataPlans[i - 1]);
+            if(i >= topDataPlans.length) break;
+        }
+
+        return topDataPlans;
     }
 
     /**

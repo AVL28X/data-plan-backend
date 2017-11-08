@@ -26,6 +26,10 @@ public class User {
         this.currentDataPlan = dp;
     }
 
+    public User(double[] dailyWeights) {
+        this.dailyWeights = dailyWeights;
+    }
+
     public double calculateUtility(){
         return Utilities.calculateDataPlanUtility(this, this.currentDataPlan);
     }

@@ -19,6 +19,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,6 +116,12 @@ public class DataPlanClient {
         return response.getUtility();
     }
 
+    public List<DataPlanMsg> getRecommendDataPlans(UserParams userParams){
+        DataPlanRequest request = DataPlanRequest.newBuilder().setUserParams(userParams).build();
+        DataPlanResponse response = this.blockingStub.getRecommendedDataPlans(request);
+        return response.getDataPlansList();
+    }
+
     public void helloWorld(){
         HWRequest request = HWRequest.newBuilder().setWord("Hello from client").build();
         System.out.println(request);
@@ -127,24 +134,26 @@ public class DataPlanClient {
      * greeting.
      */
     public static void main(String[] args) throws Exception {
-        String host = "ec2-34-211-226-27.us-west-2.compute.amazonaws.com";
-        //String host = "localhost";
+        //String host = "ec2-34-211-226-27.us-west-2.compute.amazonaws.com";
+        String host = "localhost";
         DataPlanClient client = new DataPlanClient(host, 50051);
 
         //Test Hello World
         client.helloWorld();
 
+        //A pseudo data plan and get recommended usages
+        DataPlanMsg dataPlanMsg = DataPlanMsg.newBuilder().setQuota(1000).setOverage(0.01).setPrice(35).build();
+        System.out.println("Pseudo data plan created");
+        System.out.println(dataPlanMsg);
+
+
         //Test parameter estimation
         Date[] dates = generateTestDates();
         double[] usages = generateRandomUsages(dates);
-        UserParams userParams = client.getUserParams(dates, usages, 0);
+        UserParams userParams = client.getUserParams(dates, usages, dataPlanMsg.getOverage());
         System.out.println("Calibrated Params:");
         System.out.println(userParams);
 
-        //A pseudo data plan and get recommended usages
-        DataPlanMsg dataPlanMsg = DataPlanMsg.newBuilder().setQuota(1000).setOverage(0.005).setPrice(5).build();
-        System.out.println("Pseudo data plan created");
-        System.out.println(dataPlanMsg);
 
         UsagesResponse response = client.getRecommendUsages(2017, 12, userParams, dataPlanMsg);
         System.out.println("Recommended Usages: ");
@@ -154,7 +163,12 @@ public class DataPlanClient {
         double utility = client.getUtility(userParams, dataPlanMsg);
         System.out.println("Utility of data plan: ");
         System.out.println(utility);
-
+        // Get DataPlans
+        List<DataPlanMsg> dataPlanMsgs = client.getRecommendDataPlans(userParams);
+        System.out.println("Recommended Data Plans");
+        for(DataPlanMsg dp : dataPlanMsgs){
+            System.out.println(dp);
+        }
         client.shutdown();
 
     }
