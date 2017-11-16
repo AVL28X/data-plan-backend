@@ -93,7 +93,7 @@ public class DataPlanClient {
 //    }
 
 
-    public UserParams getUserParams(Date[] dates, double[] usages, double overage) {
+    public UserParamResponse getUserParams(Date[] dates, double[] usages, double overage) {
 
         UserParamRequest.Builder builder = UserParamRequest.newBuilder();
         for (int i = 0; i < dates.length; i++) {
@@ -146,14 +146,16 @@ public class DataPlanClient {
         System.out.println("Pseudo data plan created");
         System.out.println(dataPlanMsg);
 
-
         //Test parameter estimation
         Date[] dates = generateTestDates();
         double[] usages = generateRandomUsages(dates);
-        UserParams userParams = client.getUserParams(dates, usages, dataPlanMsg.getOverage());
+        UserParamResponse userParamsResponse = client.getUserParams(dates, usages, dataPlanMsg.getOverage());
+        UserParams userParams = userParamsResponse.getUserParams();
+        UserParamsStd userParamsStd = userParamsResponse.getUserParamsStd();
         System.out.println("Calibrated Params:");
         System.out.println(userParams);
-
+        System.out.println("Standard Deviation:");
+        System.out.println(userParamsStd);
 
         UsagesResponse response = client.getRecommendUsages(2017, 12, userParams, dataPlanMsg);
         System.out.println("Recommended Usages: ");

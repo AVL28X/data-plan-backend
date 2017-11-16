@@ -8,20 +8,27 @@ option objc_class_prefix = "DP";
 
 // The data plan service
 service DataPlanService {
-  rpc GetUserParam (UserParamRequest) returns (UserParams) {} //service to calibrate user parameters
+  rpc GetUserParam (UserParamRequest) returns (UserParamResponse) {} //service to calibrate user parameters
   rpc GetRecommendUsages (RecommendUsagesRequest) returns(UsagesResponse) {}  //service to recommend daily usages
-  rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){}
-  rpc GetRecommendedDataPlans( DataPlanRequest ) returns( DataPlanResponse ){}
-  rpc HelloWorld( HWRequest) returns( HWResponse ){}
+  rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){} //service to compute utitity of given user and dataplan
+  rpc GetRecommendedDataPlans( DataPlanRequest ) returns( DataPlanResponse ){} //service to recommend top data plans
+  rpc HelloWorld( HWRequest) returns( HWResponse ){}  //hello world for heathcheck
 }
 
-// The request message containing daily usages and overage rate
+// Request for User Parameter Calibration
 message UserParamRequest {
   repeated Usage usages = 1;
   double overage = 2;  // if overage > 0, heavy user, otherwise light user
 }
 
-// user parameters
+// response for User Parameter Calibration
+message UserParamResponse {
+  UserParams userParams = 1; // calibrated parameters
+  UserParamsStd userParamsStd = 2;  // standard deviation for confidence interval
+
+}
+
+// user parameters object
 message UserParams {
   double w1 = 1; //weights of each day of week
   double w2 = 2;
@@ -34,11 +41,21 @@ message UserParams {
   double alpha = 9; //alpha
 }
 
-message UsagesRequest{
-  UserParams userParams = 1;
-  DataPlanMsg dataPlan = 2;
+// user parameters object
+message UserParamsStd{
+  double w1 = 1; //weights of each day of week
+  double w2 = 2;
+  double w3 = 3;
+  double w4 = 4;
+  double w5 = 5;
+  double w6 = 6;
+  double w7 = 7;
+  double phi = 8; // pi
+  double alpha = 9; //alpha
 }
 
+
+// Request for Daily Usages Recommendation
 message RecommendUsagesRequest{
   int32 year = 1;
   int32 month = 2;
@@ -46,45 +63,42 @@ message RecommendUsagesRequest{
   DataPlanMsg dataPlan = 4;
 }
 
+// Response of recommended daily usages
+message UsagesResponse{
+  repeated Usage usages = 1;
+}
+
+// Request for Utility Calculation
 message UtilityRequest{
   UserParams userParams = 1;
   DataPlanMsg dataPlan = 2;
 }
 
+// Response to Utility Calculation Request
 message UtilityResponse{
   double utility = 1;
 }
 
-message UsagesResponse{
-  repeated Usage usages = 1;
+//Request for top recommended data plans
+message DataPlanRequest{
+  UserParams userParams = 1;
 }
 
+//response of top data plans
+message DataPlanResponse{
+  repeated DataPlanMsg dataPlans = 1;
+}
+
+// Hello World Request
 message HWRequest{
   string word = 1;
 }
-
+// Hello World Response
 message HWResponse{
   string word = 1;
 }
 
 
-message DataPlanMsg{
-  string name = 1;
-  string description = 2;
-  double quota = 3;
-  double overage = 4;
-  double price = 5;
-
-}
-
-message DataPlanRequest{
-  UserParams userParams = 1;
-
-}
-
-message DataPlanResponse{
-  repeated DataPlanMsg dataPlans = 1;
-}
 
 //object of daily usage
 message Usage {
@@ -92,4 +106,14 @@ message Usage {
   int32 month = 3;
   int32 day = 4;
   double usage = 1;
+}
+
+// object of data plan
+message DataPlanMsg{
+  string name = 1;
+  string description = 2;
+  double quota = 3;
+  double overage = 4;
+  double price = 5;
+
 }

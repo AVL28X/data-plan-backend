@@ -6,9 +6,7 @@ import org.apache.commons.math3.fitting.leastsquares.*;
 import org.apache.commons.math3.linear.RealVector;
 
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 public class UserParamFitter {
     public final double[] usages;
@@ -17,6 +15,23 @@ public class UserParamFitter {
     public double overage;
     public boolean fitted = false;
     public double[] params; // first 6 are weights, weight 7 = 1 - sum of other weights, last two are alpha and phis
+
+    public double[] weightsStd;
+    public double phiStd;
+    public double alphaStd;
+
+    public class UserParamsStd{
+        double w1;
+        double w2;
+        double w3;
+        double w4;
+        double w5;
+        double w6;
+        double w7;
+        double alpha;
+        double phi;
+    }
+
 
     public UserParamFitter(double[] usages, Date[] dates, double pi, User.UserType userType) throws Exception{
         if(usages.length != dates.length)
@@ -274,4 +289,60 @@ public class UserParamFitter {
         userParamFitter.fit();
         System.out.println(userParamFitter);
     }
+
+
+    /**
+     * getSimulatedParamStds: assumes usages follows normal distribution, simulate w_i and solve alpha and phi to calculate
+     * standard deviations of alpha and phi
+     */
+    public UserParamsStd getSimulatedParamStds(int numPaths) throws Exception {
+        double usageStd = calcStd(this.usages);
+        double[] alphas = new double[numPaths];
+        double[] phis = new double[numPaths];
+        double[][] weights = new double[8][numPaths];
+
+        Random rand = new Random();
+        for(int i = 0; i < numPaths; i++){
+            double[] simulatedUsages = Arrays.copyOf(usages, usages.length);
+            // add perturbations
+            for(int j = 0; j < simulatedUsages.length; j++){
+                simulatedUsages[j] += rand.nextGaussian() * usageStd;
+                simulatedUsages[j] = Math.max(simulatedUsages[j], 0);
+            }
+
+            UserParamFitter userParamsFitter = new UserParamFitter(simulatedUsages, this.dates, this.overage, this.userType);
+            for(int j = 1; j < 8; j++)
+                weights[j][i] = userParamsFitter.getDailyWeight(j);
+            alphas[i] = userParamsFitter.getAlpha();
+            phis[i] = userParamsFitter.getPhi();
+        }
+
+        UserParamsStd userParamsStd = new UserParamsStd();
+        userParamsStd.w1 = calcStd(weights[1]);
+        userParamsStd.w2 = calcStd(weights[2]);
+        userParamsStd.w3 = calcStd(weights[3]);
+        userParamsStd.w4 = calcStd(weights[4]);
+        userParamsStd.w5 = calcStd(weights[5]);
+        userParamsStd.w6 = calcStd(weights[6]);
+        userParamsStd.w7 = calcStd(weights[7]);
+
+        userParamsStd.alpha = calcStd(alphas);
+        userParamsStd.phi = calcStd(phis);
+
+        return userParamsStd;
+    }
+
+    public static double calcStd(double[] nums){
+        double sum = 0;
+        double totalVar = 0;
+        for(double num : nums){
+            sum += num;
+        }
+        double mean = sum / nums.length;
+        for(double num : nums){
+            totalVar += (num - mean) * (num - mean);
+        }
+        return Math.sqrt(totalVar / (nums.length - 1));
+    }
+
 }

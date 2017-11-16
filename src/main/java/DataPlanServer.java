@@ -105,7 +105,7 @@ public class DataPlanServer {
      */
     static class DataPlanServiceImpl extends DataPlanServiceGrpc.DataPlanServiceImplBase {
         @Override
-        public void getUserParam(UserParamRequest request, StreamObserver<UserParams> responseObserver){
+        public void getUserParam(UserParamRequest request, StreamObserver<UserParamResponse> responseObserver){
             try {
                 List<Usage> usages = request.getUsagesList();
 
@@ -121,7 +121,22 @@ public class DataPlanServer {
                 if (request.getOverage() > 0)
                     userType = User.UserType.HEAVY;
                 UserParamFitter userParamFitter = new UserParamFitter(dailyUsages, dates, request.getOverage(), userType);
-                userParamFitter.fit();
+
+                UserParamFitter.UserParamsStd userParamsStd = userParamFitter.getSimulatedParamStds(1000);
+
+                UserParamsStd userParamsStdProto = UserParamsStd.newBuilder()
+                        .setW1(userParamsStd.w1)
+                        .setW2(userParamsStd.w2)
+                        .setW3(userParamsStd.w3)
+                        .setW4(userParamsStd.w4)
+                        .setW5(userParamsStd.w5)
+                        .setW6(userParamsStd.w6)
+                        .setW7(userParamsStd.w7)
+                        .setAlpha(userParamsStd.alpha)
+                        .setPhi(userParamsStd.phi)
+                        .build();
+
+
                 UserParams userParams = UserParams.newBuilder()
                         .setW1(userParamFitter.getDailyWeight(1))
                         .setW2(userParamFitter.getDailyWeight(2))
@@ -136,7 +151,8 @@ public class DataPlanServer {
 
                 System.out.println("Response:");
                 System.out.println(userParams);
-                responseObserver.onNext(userParams);
+                System.out.println(userParamsStd);
+                responseObserver.onNext(UserParamResponse.newBuilder().setUserParams(userParams).setUserParamsStd(userParamsStdProto).build());
                 responseObserver.onCompleted();
             }catch (Exception e){
 
