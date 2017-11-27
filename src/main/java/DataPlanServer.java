@@ -7,6 +7,7 @@ import javax.rmi.CORBA.Util;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -101,6 +102,53 @@ public class DataPlanServer {
     }
 
     /**
+     * generate a random normal user using given user parameters and standard deviation
+     * @param userParams
+     * @param userParamsStd
+     * @return
+     */
+    public static User generateRandomNormUser(UserParams userParams, UserParamsStd userParamsStd){
+        double[] weights = new double[28];
+        Random random = new Random();
+        for(int i = 0; i < weights.length; i++){
+            int dayOfWeek = i % 7;
+            if(dayOfWeek == 0)
+                dayOfWeek = 7;
+
+            switch (dayOfWeek){
+                case 1:
+                    weights[i] = userParams.getW1() + random.nextGaussian() * userParamsStd.getW1();
+                    break;
+                case 2:
+                    weights[i] = userParams.getW2() + random.nextGaussian() * userParamsStd.getW2();
+                    break;
+                case 3:
+                    weights[i] = userParams.getW3() + random.nextGaussian() * userParamsStd.getW3();
+                    break;
+                case 4:
+                    weights[i] = userParams.getW4() + random.nextGaussian() * userParamsStd.getW4();
+                    break;
+                case 5:
+                    weights[i] = userParams.getW5() + random.nextGaussian() * userParamsStd.getW5();
+                    break;
+                case 6:
+                    weights[i] = userParams.getW6() + random.nextGaussian() * userParamsStd.getW6();
+                    break;
+                case 7:
+                    weights[i] = userParams.getW7() + random.nextGaussian() * userParamsStd.getW7();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        User user = new User(weights);
+        user.setAlpha(userParams.getAlpha() + random.nextGaussian() * userParamsStd.getAlpha());
+        user.setPhi(userParams.getPhi() + random.nextGaussian() * userParamsStd.getPhi());
+        return user;
+    }
+
+    /**
      * Implementation of GetUserParams API
      */
     static class DataPlanServiceImpl extends DataPlanServiceGrpc.DataPlanServiceImplBase {
@@ -175,6 +223,52 @@ public class DataPlanServer {
                                 .setQuota(topDataPlans[i].quota)
                                 .setOverage(topDataPlans[i].overage)
                                 .setPrice(topDataPlans[i].price).build()
+                );
+            }
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
+        }
+
+
+        @Override
+        public void getRecommendedDataPlans2(DataPlanRequest2 request, StreamObserver<DataPlanResponse2> responseObserver) {
+
+            DataPlan[] dps = DataPlan.getDataPlansFromCSV("Data Plans.csv");
+            double[] utilities = new double[dps.length];
+            double[] maxUtilities = new double[dps.length];
+            double[] minUtilities = new double[dps.length];
+
+            User user = convertUserParamsToUser(request.getUserParams());
+            for(int i = 0; i < dps.length; i++){
+                utilities[i] = Utilities.calculateDataPlanUtility(user, dps[i]);
+                maxUtilities[i] = utilities[i];
+                minUtilities[i] = utilities[i];
+            }
+
+            for(int j = 0; j < 10000; j++){
+                User randomUser = generateRandomNormUser(request.getUserParams(), request.getUserParamsStd());
+                for(int i = 0; i < dps.length; i++) {
+                    double utility = Utilities.calculateDataPlanUtility(randomUser, dps[i]);
+                    if (!Double.isNaN(utility)){
+                        maxUtilities[i] = Math.max(maxUtilities[i], utility);
+                        minUtilities[i] = Math.min(maxUtilities[i], utility);
+                    }
+                }
+            }
+
+            DataPlanResponse2.Builder responseBuilder = DataPlanResponse2.newBuilder();
+            for(int i = 0; i < dps.length; i++){
+                responseBuilder.addDataPlans(
+                        DataPlanMsg2.newBuilder()
+                                .setDescription(dps[i].description)
+                                .setName(dps[i].name)
+                                .setQuota(dps[i].quota)
+                                .setOverage(dps[i].overage)
+                                .setPrice(dps[i].price)
+                                .setUtility(utilities[i])
+                                .setMaxUtility(maxUtilities[i])
+                                .setMinUtility(minUtilities[i])
+                                .build()
                 );
             }
             responseObserver.onNext(responseBuilder.build());
@@ -257,6 +351,8 @@ public class DataPlanServer {
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
+
+
 
         @Override
         public void helloWorld(HWRequest request, StreamObserver<HWResponse> responseObserver) {

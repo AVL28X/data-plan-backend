@@ -122,6 +122,13 @@ public class DataPlanClient {
         return response.getDataPlansList();
     }
 
+    //get detailed utilities of data plans
+    public List<DataPlanMsg2> getRecommendDataPlans2(UserParams userParams, UserParamsStd userParamsStd){
+        DataPlanRequest2 request = DataPlanRequest2.newBuilder().setUserParams(userParams).setUserParamsStd(userParamsStd).build();
+        DataPlanResponse2 response = this.blockingStub.getRecommendedDataPlans2(request);
+        return response.getDataPlansList();
+    }
+
     public void helloWorld(){
         HWRequest request = HWRequest.newBuilder().setWord("Hello from client").build();
         System.out.println(request);
@@ -171,7 +178,13 @@ public class DataPlanClient {
         for(DataPlanMsg dp : dataPlanMsgs){
             System.out.println(dp);
         }
-        client.shutdown();
 
+        // Get DataPlans and max, min utilities
+        List<DataPlanMsg2> dataPlanMsgs2 = client.getRecommendDataPlans2(userParams, userParamsStd);
+        System.out.println("Data Plans and max/min utilities");
+        for(DataPlanMsg2 dp : dataPlanMsgs2){
+            System.out.println(dp);
+        }
+        client.shutdown();
     }
 }

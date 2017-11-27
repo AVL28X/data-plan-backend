@@ -139,9 +139,9 @@ public class UserParamFitter {
 
         double[] initialParams = new double[8];
         for(int i = 0; i < 6; i++)
-            initialParams[i] = 0.25 / 7;
+            initialParams[i] = 1.0 / 30;
         initialParams[6] = 0.01;
-        initialParams[7] = 0.38;
+        initialParams[7] = 1;
 
         LeastSquaresProblem problem = new LeastSquaresBuilder().
                 start(initialParams).
@@ -220,9 +220,9 @@ public class UserParamFitter {
 
         double[] initialParams = new double[9];
         for(int i = 0; i < 7; i++)
-            initialParams[i] = 0.1 / 30;
-        initialParams[7] = 0.01;
-        initialParams[8] = 0.38;
+            initialParams[i] = 1.0 / 30;
+        initialParams[7] = 0.02;
+        initialParams[8] = 1;
 
         LeastSquaresProblem problem = new LeastSquaresBuilder().
                 start(initialParams).

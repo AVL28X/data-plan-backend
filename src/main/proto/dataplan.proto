@@ -12,6 +12,7 @@ service DataPlanService {
   rpc GetRecommendUsages (RecommendUsagesRequest) returns(UsagesResponse) {}  //service to recommend daily usages
   rpc GetUtility( UtilityRequest ) returns( UtilityResponse ){} //service to compute utitity of given user and dataplan
   rpc GetRecommendedDataPlans( DataPlanRequest ) returns( DataPlanResponse ){} //service to recommend top data plans
+  rpc GetRecommendedDataPlans2( DataPlanRequest2 ) returns( DataPlanResponse2 ){} //service to recommend top data plans
   rpc HelloWorld( HWRequest) returns( HWResponse ){}  //hello world for heathcheck
 }
 
@@ -89,6 +90,20 @@ message DataPlanResponse{
   repeated DataPlanMsg dataPlans = 1;
 }
 
+//Request for top recommended data plans
+message DataPlanRequest2{
+  UserParams userParams = 1;
+  UserParamsStd userParamsStd = 2;  // standard deviation for confidence interval
+}
+
+
+//response of data plans with detailed max and min utility
+message DataPlanResponse2{
+  repeated DataPlanMsg2 dataPlans = 1;
+}
+
+
+
 // Hello World Request
 message HWRequest{
   string word = 1;
@@ -116,4 +131,16 @@ message DataPlanMsg{
   double overage = 4;
   double price = 5;
 
+}
+
+// object of data plan
+message DataPlanMsg2{
+  string name = 1;
+  string description = 2;
+  double quota = 3;
+  double overage = 4;
+  double price = 5;
+  double utility = 6;
+  double max_utility = 7;
+  double min_utility = 8;
 }
