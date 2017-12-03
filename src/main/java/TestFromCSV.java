@@ -11,6 +11,7 @@ public class TestFromCSV {
         public String userId;
         public double[] usages;
         public Date[] dates;
+        public String host = "localhost";
 
         public UserTest(String userId, double[] usages, Date[] dates) {
             this.userId = userId;
@@ -19,7 +20,6 @@ public class TestFromCSV {
         }
 
         public void test() throws InterruptedException {
-            String host = "localhost";
             DataPlanClient client = new DataPlanClient(host, 50051);
 
 //            System.out.println("Test User : " + userId);
@@ -53,6 +53,14 @@ public class TestFromCSV {
 //            for(DataPlanMsg dp : dataPlanMsgs){
 //                System.out.println(dp);
 //            }
+
+
+            // Get DataPlans and max, min utilities
+            List<DataPlanMsg2> dataPlanMsgs2 = client.getRecommendDataPlans2(userParams, userParamsStd);
+            System.out.println("Data Plans and max/min utilities");
+            for(DataPlanMsg2 dp : dataPlanMsgs2){
+                System.out.println(dp);
+            }
             client.shutdown();
         }
 

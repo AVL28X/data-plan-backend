@@ -77,7 +77,6 @@ public class Utilities {
             System.out.println(topDataPlans[i - 1]);
             if(i >= topDataPlans.length) break;
         }
-
         return topDataPlans;
     }
 

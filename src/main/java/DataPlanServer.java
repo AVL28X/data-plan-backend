@@ -5,9 +5,7 @@ import io.grpc.stub.StreamObserver;
 
 import javax.rmi.CORBA.Util;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -238,22 +236,31 @@ public class DataPlanServer {
             double[] maxUtilities = new double[dps.length];
             double[] minUtilities = new double[dps.length];
 
+            int numPaths = 1000;
+
+            double[][] simulatedUtilities = new double[dps.length][numPaths];
+
             User user = convertUserParamsToUser(request.getUserParams());
             for(int i = 0; i < dps.length; i++){
+
                 utilities[i] = Utilities.calculateDataPlanUtility(user, dps[i]);
-                maxUtilities[i] = utilities[i];
-                minUtilities[i] = utilities[i];
+                simulatedUtilities[i][0] = utilities[i];
             }
 
-            for(int j = 0; j < 10000; j++){
+            for(int j = 1; j < numPaths; j++){
                 User randomUser = generateRandomNormUser(request.getUserParams(), request.getUserParamsStd());
                 for(int i = 0; i < dps.length; i++) {
                     double utility = Utilities.calculateDataPlanUtility(randomUser, dps[i]);
-                    if (!Double.isNaN(utility)){
-                        maxUtilities[i] = Math.max(maxUtilities[i], utility);
-                        minUtilities[i] = Math.min(maxUtilities[i], utility);
-                    }
+                    simulatedUtilities[i][j] = utility;
                 }
+            }
+
+
+            for(int i = 0; i < dps.length; i++){
+                //calculate 5 and 95 percentiles of dps
+                Arrays.sort(simulatedUtilities[i]);
+                minUtilities[i] = simulatedUtilities[i][(int)(numPaths * 0.05)];
+                maxUtilities[i] = simulatedUtilities[i][(int)(numPaths * 0.95)];
             }
 
             DataPlanResponse2.Builder responseBuilder = DataPlanResponse2.newBuilder();
@@ -362,8 +369,5 @@ public class DataPlanServer {
             responseObserver.onCompleted();
         }
     }
-
-
-
 
 }

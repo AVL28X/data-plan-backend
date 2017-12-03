@@ -49,7 +49,7 @@ public class UserParamFitter {
 
     public double getDailyWeight(int dayOfWeek){
         if(dayOfWeek == 6)
-            return 1.0 / 4 - getSumWeight(this.params);
+            return 0.25 - getSumWeight(this.params);
         else
             return params[dayOfWeek % 7];
 
@@ -79,10 +79,14 @@ public class UserParamFitter {
                 double[] results = new double[usages.length];
                 for(int i = 0; i < usages.length; i++){
                     double w;
-                    if( dayOfWeek(dates[i]) == 6 )
+
+                    if( dayOfWeek(dates[i]) == 6 ) {
                         w = 0.25 - getSumWeight(params);
-                    else
+                        System.out.println("w = " + w);
+                    }else
                         w = params[dayOfWeek(dates[i])];
+
+
                     results[i] = predictedUsage(w, params[6], params[7]);
                 }
                 return results;
@@ -113,7 +117,7 @@ public class UserParamFitter {
                             jacobian[i][day] +=  Math.pow(w / phi, 1 / alpha - 1) / (alpha * phi);
                         else {
                             for(int j = 0; j < 6; j++)
-                                jacobian[j][day] -= Math.pow(w / phi, 1 / alpha - 1) / (alpha * phi);
+                                jacobian[i][j] -= Math.pow(w / phi, 1 / alpha - 1) / (alpha * phi);
                         }
                         //update diff w.r.t phi
                         jacobian[i][6] -=  Math.pow(w / phi, 1 / alpha - 1) * w / (alpha * phi * phi);
@@ -125,7 +129,7 @@ public class UserParamFitter {
                             jacobian[i][day] +=  Math.pow(w / (phi + overage), 1 / alpha - 1) / (alpha * (phi + overage));
                         else {
                             for(int j = 0; j < 6; j++)
-                                jacobian[j][day] -= Math.pow(w / (phi + overage), 1 / alpha - 1) / (alpha * (phi + overage));
+                                jacobian[i][j] -= Math.pow(w / (phi + overage), 1 / alpha - 1) / (alpha * (phi + overage));
                         }
                         //update diff w.r.t phi
                         jacobian[i][6] -=  Math.pow(w / (phi + overage), 1 / alpha - 1) * w / (alpha * (phi + overage) * (phi + overage));
@@ -139,7 +143,7 @@ public class UserParamFitter {
 
         double[] initialParams = new double[8];
         for(int i = 0; i < 6; i++)
-            initialParams[i] = 1.0 / 30;
+            initialParams[i] = 0.25 / 7;
         initialParams[6] = 0.01;
         initialParams[7] = 1;
 
@@ -162,83 +166,83 @@ public class UserParamFitter {
         fitted =true;
     }
 
-    @Deprecated
-    public void fit2(){
-        MultivariateVectorFunction vectorFunction = new MultivariateVectorFunction() {
-            @Override
-            public double[] value(double[] params) throws IllegalArgumentException {
-                //calculate errors
-                double sumErrors = 0;
-                double[] results = new double[usages.length];
-                for(int i = 0; i < usages.length; i++){
-                    double w = params[dayOfWeek(dates[i])];
-                    results[i] = predictedUsage(w, params[7], params[8]);
-                }
-                return results;
-            }
-        };
-
-        //Jacobian
-        MultivariateMatrixFunction jacobianFunction = new MultivariateMatrixFunction(){
-            @Override
-            public double[][] value(double[] params) throws IllegalArgumentException {
-                double[][] jacobian = new double[usages.length][params.length];
-                for(int i = 0; i < usages.length; i++)
-                    for(int j = 0; j < 9; j++)
-                        jacobian[i][j] = 0;
-
-                double phi = params[7];
-                double alpha = params[8];
-                for(int i = 0; i < usages.length; i++) {
-                    int day = dayOfWeek(dates[i]);
-                    double w = params[day];
-                    double usagePredicted = predictedUsage(w, params[6], params[7]);
-                    double error = usagePredicted - usages[i];
-
-                    if (userType == User.UserType.LIGHT || userType == User.UserType.MODERATE) {
-                        //update diff w.r.t w_j
-                        jacobian[i][day] +=  Math.pow(w / phi, 1 / alpha - 1) / (alpha * phi);
-                        //update diff w.r.t phi
-                        jacobian[i][7] -=  Math.pow(w / phi, 1 / alpha - 1) * w / (alpha * phi * phi);
-
-                        jacobian[i][7] = 0;
-                        //update diff w.r.t alpha
-                        jacobian[i][8] -=  usagePredicted / (alpha * alpha) * Math.log(w / phi);
-                    } else {
-                        //update diff w.r.t w_j
-                        jacobian[i][day] += Math.pow(w / (phi + overage), 1 / alpha - 1) / (alpha * (phi + overage));
-                        //update diff w.r.t phi
-                        jacobian[i][7] -=  Math.pow(w / (phi + overage), 1 / alpha - 1) * w / (alpha * (phi + overage) * (phi + overage));
-                        jacobian[i][7] = 0;
-                        //update diff w.r.t alpha
-                        jacobian[i][8] -= usagePredicted / (alpha * alpha) * Math.log(w / (phi + overage));
-                    }
-                }
-                return jacobian;
-            }
-        };
-
-        double[] initialParams = new double[9];
-        for(int i = 0; i < 7; i++)
-            initialParams[i] = 1.0 / 30;
-        initialParams[7] = 0.02;
-        initialParams[8] = 1;
-
-        LeastSquaresProblem problem = new LeastSquaresBuilder().
-                start(initialParams).
-                model(vectorFunction, jacobianFunction).
-                target(usages).
-                lazyEvaluation(false).
-                maxEvaluations(1000).
-                maxIterations(100000000).
-                build();
-
-        LeastSquaresOptimizer.Optimum optimum = new LevenbergMarquardtOptimizer().optimize(problem);
-        RealVector sol = optimum.getPoint();
-
-        this.params = sol.toArray();
-    }
-
+//    @Deprecated
+//    public void fit2(){
+//        MultivariateVectorFunction vectorFunction = new MultivariateVectorFunction() {
+//            @Override
+//            public double[] value(double[] params) throws IllegalArgumentException {
+//                //calculate errors
+//                double sumErrors = 0;
+//                double[] results = new double[usages.length];
+//                for(int i = 0; i < usages.length; i++){
+//                    double w = params[dayOfWeek(dates[i])];
+//                    results[i] = predictedUsage(w, params[7], params[8]);
+//                }
+//                return results;
+//            }
+//        };
+//
+//        //Jacobian
+//        MultivariateMatrixFunction jacobianFunction = new MultivariateMatrixFunction(){
+//            @Override
+//            public double[][] value(double[] params) throws IllegalArgumentException {
+//                double[][] jacobian = new double[usages.length][params.length];
+//                for(int i = 0; i < usages.length; i++)
+//                    for(int j = 0; j < 9; j++)
+//                        jacobian[i][j] = 0;
+//
+//                double phi = params[7];
+//                double alpha = params[8];
+//                for(int i = 0; i < usages.length; i++) {
+//                    int day = dayOfWeek(dates[i]);
+//                    double w = params[day];
+//                    double usagePredicted = predictedUsage(w, params[6], params[7]);
+//                    double error = usagePredicted - usages[i];
+//
+//                    if (userType == User.UserType.LIGHT || userType == User.UserType.MODERATE) {
+//                        //update diff w.r.t w_j
+//                        jacobian[i][day] +=  Math.pow(w / phi, 1 / alpha - 1) / (alpha * phi);
+//                        //update diff w.r.t phi
+//                        jacobian[i][7] -=  Math.pow(w / phi, 1 / alpha - 1) * w / (alpha * phi * phi);
+//
+//                        jacobian[i][7] = 0;
+//                        //update diff w.r.t alpha
+//                        jacobian[i][8] -=  usagePredicted / (alpha * alpha) * Math.log(w / phi);
+//                    } else {
+//                        //update diff w.r.t w_j
+//                        jacobian[i][day] += Math.pow(w / (phi + overage), 1 / alpha - 1) / (alpha * (phi + overage));
+//                        //update diff w.r.t phi
+//                        jacobian[i][7] -=  Math.pow(w / (phi + overage), 1 / alpha - 1) * w / (alpha * (phi + overage) * (phi + overage));
+//                        jacobian[i][7] = 0;
+//                        //update diff w.r.t alpha
+//                        jacobian[i][8] -= usagePredicted / (alpha * alpha) * Math.log(w / (phi + overage));
+//                    }
+//                }
+//                return jacobian;
+//            }
+//        };
+//
+//        double[] initialParams = new double[9];
+//        for(int i = 0; i < 7; i++)
+//            initialParams[i] = 1.0 / 30;
+//        initialParams[7] = 0.02;
+//        initialParams[8] = 1;
+//
+//        LeastSquaresProblem problem = new LeastSquaresBuilder().
+//                start(initialParams).
+//                model(vectorFunction, jacobianFunction).
+//                target(usages).
+//                lazyEvaluation(false).
+//                maxEvaluations(1000).
+//                maxIterations(100000000).
+//                build();
+//
+//        LeastSquaresOptimizer.Optimum optimum = new LevenbergMarquardtOptimizer().optimize(problem);
+//        RealVector sol = optimum.getPoint();
+//
+//        this.params = sol.toArray();
+//    }
+//
 
 
     @Override
@@ -264,9 +268,9 @@ public class UserParamFitter {
 
     public double predictedUsage(double weight, double phi, double alpha){
         if(userType == User.UserType.LIGHT || userType == User.UserType.MODERATE)
-            return Math.pow(weight / phi, 1 / alpha);
+            return Math.pow(weight / phi, 1.0 / alpha);
         else
-            return Math.pow(weight / (phi + overage), 1 / alpha);
+            return Math.pow(weight / (phi + overage), 1.0 / alpha);
     }
 
     /**
@@ -280,12 +284,18 @@ public class UserParamFitter {
 
         Date today = new Date();
         for(int i = 0; i < 30; i++) {
-            usages[i] = (i % 7) * 10 + Math.random() * 1;
+            System.out.println();
+            usages[i] =  10 * (i % 7 + 1);
             Date date = new Date(today.getTime() + (1000 * 60 * 60 * 24 * i));
             dates[i] = date;
         }
 
         UserParamFitter userParamFitter = new UserParamFitter(usages, dates, 0.01, User.UserType.HEAVY);
+
+        for(int i = 0; i < 30; i++) {
+            System.out.println(userParamFitter.dayOfWeek(dates[i]));
+        }
+
         userParamFitter.fit();
         System.out.println(userParamFitter);
     }
@@ -344,5 +354,8 @@ public class UserParamFitter {
         }
         return Math.sqrt(totalVar / (nums.length - 1));
     }
+
+
+
 
 }
