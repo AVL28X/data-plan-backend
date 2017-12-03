@@ -29,7 +29,6 @@ import java.util.logging.Logger;
  */
 public class DataPlanClient {
     private static final Logger logger = Logger.getLogger(DataPlanClient.class.getName());
-
     private final ManagedChannel channel;
     private final DataPlanServiceGrpc.DataPlanServiceBlockingStub blockingStub;
 
