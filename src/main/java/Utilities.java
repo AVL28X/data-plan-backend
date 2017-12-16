@@ -164,6 +164,10 @@ public class Utilities {
         return dayOfWeek;
     }
 
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
 //        Date today = new Date();
 //        for (int i = 0; i < 7; i++) {

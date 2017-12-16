@@ -1,12 +1,15 @@
-
-import org.apache.commons.math3.analysis.DifferentiableMultivariateVectorFunction;
 import org.apache.commons.math3.analysis.MultivariateMatrixFunction;
 import org.apache.commons.math3.analysis.MultivariateVectorFunction;
-import org.apache.commons.math3.fitting.leastsquares.*;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresBuilder;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
+import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
 import org.apache.commons.math3.linear.RealVector;
 
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Random;
 
 public class UserParamFitter {
     public final double[] usages;
@@ -249,13 +252,13 @@ public class UserParamFitter {
     public String toString(){
         if(!fitted)
             return "Not fitted!!!\n";
-        String res = new String();
+        StringBuilder res = new StringBuilder();
         for(int i = 0; i < 6; i++)
-            res += "Weight" + (i + 1) + ": " + params[i] + "\n";
-        res += "Weight7: " + (0.25 - getSumWeight(params)) + "\n";
-        res += "Phi: " + params[6] + "\n";
-        res += "Alpha: " + params[7] + "\n";
-        return res;
+            res.append("Weight").append(i + 1).append(": ").append(params[i]).append("\n");
+        res.append("Weight7: ").append(0.25 - getSumWeight(params)).append("\n");
+        res.append("Phi: ").append(params[6]).append("\n");
+        res.append("Alpha: ").append(params[7]).append("\n");
+        return res.toString();
     }
 
 

@@ -18,8 +18,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -125,7 +124,20 @@ public class DataPlanClient {
     public List<DataPlanMsg2> getRecommendDataPlans2(UserParams userParams, UserParamsStd userParamsStd){
         DataPlanRequest2 request = DataPlanRequest2.newBuilder().setUserParams(userParams).setUserParamsStd(userParamsStd).build();
         DataPlanResponse2 response = this.blockingStub.getRecommendedDataPlans2(request);
-        return response.getDataPlansList();
+        List<DataPlanMsg2> modifiableList = new ArrayList<DataPlanMsg2>(response.getDataPlansList());
+        Collections.sort(modifiableList,
+                new Comparator<DataPlanMsg2>() {
+                    @Override
+                    public int compare(DataPlanMsg2 o1, DataPlanMsg2 o2) {
+                        if (o1.getUtility() > o2.getUtility())
+                            return -1;
+                        else
+                            return 1;
+                    }
+                }
+
+        );
+        return modifiableList;
     }
 
     public void helloWorld(){

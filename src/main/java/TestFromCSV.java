@@ -85,7 +85,7 @@ public class TestFromCSV {
     }
 
     public static UserTest[] generateUserTestsFromCSV(String fname){
-        CSVReader reader = null;
+        CSVReader reader;
         try {
             reader = new CSVReader(new FileReader(fname), ',');
             List<String[]> rows = reader.readAll();
@@ -111,7 +111,7 @@ public class TestFromCSV {
 
     public static void main(String[] args) throws Exception {
         UserTest[] userTests = generateUserTestsFromCSV("daily.csv");
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < 3 && i < userTests.length; i++){
             System.out.println(userTests[i]);
             userTests[i].test();
         }

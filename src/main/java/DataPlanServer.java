@@ -1,11 +1,16 @@
-import io.grpc.BindableService;
+import com.opencsv.CSVWriter;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
-import javax.rmi.CORBA.Util;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -282,6 +287,20 @@ public class DataPlanServer {
             responseObserver.onCompleted();
         }
 
+        public void generateUsagesCSV(Date[] dates, double[] usages) throws IOException {
+            CSVWriter writer = new CSVWriter(new FileWriter("visualizer/static/data.csv"), ',');
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            String[] columnNames = {"date", "value"};
+            writer.writeNext(columnNames);
+            for(int i = 0; i < dates.length; i++){
+                String[] line = new String[2];
+                line[0] = dateFormat.format(dates[i]);
+                line[1] = Double.toString(usages[i]);
+                writer.writeNext(line);
+            }
+            writer.close();
+        }
+
         @Override
         public void getRecommendUsages(RecommendUsagesRequest request, StreamObserver<UsagesResponse> responseObserver) {
             //create data plan and user from request
@@ -329,6 +348,12 @@ public class DataPlanServer {
             user.setAlpha(request.getUserParams().getAlpha());
             user.setPhi(request.getUserParams().getPhi());
             double[] usages = Utilities.getOptimalUsages(user, dp);
+
+            try {
+                generateUsagesCSV(dates, usages);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             UsagesResponse.Builder responseBuilder = UsagesResponse.newBuilder();
             for(int i = 0; i < dates.length; i++){
