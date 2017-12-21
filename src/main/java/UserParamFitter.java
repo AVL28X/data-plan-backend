@@ -15,14 +15,11 @@ public class UserParamFitter {
     public final double[] usages;
     public final Date[] dates;
     public final User.UserType userType;
-    public double overage;
-    public boolean fitted = false;
+    public double overage; // overage fee
+    public boolean fitted = false;  // has been fitted
     public double[] params; // first 6 are weights, weight 7 = 1 - sum of other weights, last two are alpha and phis
 
-    public double[] weightsStd;
-    public double phiStd;
-    public double alphaStd;
-
+    //standard deviation for each parameter
     public class UserParamsStd{
         double w1;
         double w2;
@@ -46,10 +43,19 @@ public class UserParamFitter {
         fit();
     }
 
+    /**
+     * get weights from calibrated results
+     * @return
+     */
     public double[] getWeights(){
         return Arrays.copyOfRange(params, 0, 6);
     }
 
+    /**
+     * get weight of given day of week from calibrated parameter, assuming w0 + ... w6 = 0.25
+     * @param dayOfWeek
+     * @return
+     */
     public double getDailyWeight(int dayOfWeek){
         if(dayOfWeek == 6)
             return 0.25 - getSumWeight(this.params);
@@ -66,7 +72,11 @@ public class UserParamFitter {
         return params[7];
     }
 
-
+    /**
+     * get sum of weights w0 + ... + w6
+     * @param params
+     * @return
+     */
     public double getSumWeight(double[] params){
         double sum = 0;
         for(int i = 0; i < 6; i++)
@@ -74,7 +84,11 @@ public class UserParamFitter {
         return sum;
     }
 
+    /**
+     * calibrate parameters to fit daily usages
+     */
     public void fit(){
+
         MultivariateVectorFunction vectorFunction = new MultivariateVectorFunction() {
             @Override
             public double[] value(double[] params) throws IllegalArgumentException {
@@ -144,12 +158,14 @@ public class UserParamFitter {
             }
         };
 
+        // initial solution
         double[] initialParams = new double[8];
         for(int i = 0; i < 6; i++)
             initialParams[i] = 0.25 / 7;
         initialParams[6] = 0.01;
         initialParams[7] = 1;
 
+        //least square optimization
         LeastSquaresProblem problem = new LeastSquaresBuilder().
                 start(initialParams).
                 model(vectorFunction, jacobianFunction).
@@ -262,6 +278,11 @@ public class UserParamFitter {
     }
 
 
+    /**
+     * get day of week from date
+     * @param date
+     * @return
+     */
     public int dayOfWeek(Date date){
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -269,6 +290,13 @@ public class UserParamFitter {
         return dayOfWeek - 1;
     }
 
+    /**
+     * predict daily usage
+     * @param weight
+     * @param phi
+     * @param alpha
+     * @return
+     */
     public double predictedUsage(double weight, double phi, double alpha){
         if(userType == User.UserType.LIGHT || userType == User.UserType.MODERATE)
             return Math.pow(weight / phi, 1.0 / alpha);
@@ -276,32 +304,6 @@ public class UserParamFitter {
             return Math.pow(weight / (phi + overage), 1.0 / alpha);
     }
 
-    /**
-     * Testing
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        double[] usages = new double[30];
-        Date[] dates = new Date[30];
-
-        Date today = new Date();
-        for(int i = 0; i < 30; i++) {
-            System.out.println();
-            usages[i] =  10 * (i % 7 + 1);
-            Date date = new Date(today.getTime() + (1000 * 60 * 60 * 24 * i));
-            dates[i] = date;
-        }
-
-        UserParamFitter userParamFitter = new UserParamFitter(usages, dates, 0.01, User.UserType.HEAVY);
-
-        for(int i = 0; i < 30; i++) {
-            System.out.println(userParamFitter.dayOfWeek(dates[i]));
-        }
-
-        userParamFitter.fit();
-        System.out.println(userParamFitter);
-    }
 
 
     /**
@@ -345,6 +347,11 @@ public class UserParamFitter {
         return userParamsStd;
     }
 
+    /**
+     * calculate standard deviations
+     * @param nums
+     * @return
+     */
     public static double calcStd(double[] nums){
         double sum = 0;
         double totalVar = 0;
@@ -359,6 +366,32 @@ public class UserParamFitter {
     }
 
 
+    /**
+     * Testing
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception {
+        double[] usages = new double[30];
+        Date[] dates = new Date[30];
+
+        Date today = new Date();
+        for(int i = 0; i < 30; i++) {
+            System.out.println();
+            usages[i] =  10 * (i % 7 + 1);
+            Date date = new Date(today.getTime() + (1000 * 60 * 60 * 24 * i));
+            dates[i] = date;
+        }
+
+        UserParamFitter userParamFitter = new UserParamFitter(usages, dates, 0.01, User.UserType.HEAVY);
+
+        for(int i = 0; i < 30; i++) {
+            System.out.println(userParamFitter.dayOfWeek(dates[i]));
+        }
+
+        userParamFitter.fit();
+        System.out.println(userParamFitter);
+    }
 
 
 }

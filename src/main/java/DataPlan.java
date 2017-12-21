@@ -1,18 +1,17 @@
 import com.opencsv.CSVReader;
-
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * class of data plan
+ */
 public class DataPlan {
 
-    public int id;
     public String name;
     public String description;
-
-    public double quota;
-    public double overage;
+    public double quota; // quota in MB
+    public double overage; // overage charge $/MB
     public double price;
 
     public DataPlan(double quota, double overage, double price){
@@ -39,6 +38,11 @@ public class DataPlan {
     }
 
 
+    /**
+     * read csv file and return an array of data plans
+     * @param fname - csv filename
+     * @return
+     */
     public static DataPlan[] getDataPlansFromCSV(String fname){
         CSVReader reader = null;
         try {
@@ -61,10 +65,6 @@ public class DataPlan {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) throws IOException {
-
     }
 
 }

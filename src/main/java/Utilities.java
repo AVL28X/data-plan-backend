@@ -3,7 +3,6 @@ import java.util.Date;
 import java.util.TreeMap;
 
 public class Utilities {
-
     /**
      * given user and data plan, return the type of user
      * @param u - User object
@@ -134,6 +133,12 @@ public class Utilities {
         return profit;
     }
 
+    /**
+     * get dates of a month
+     * @param year
+     * @param month
+     * @return
+     */
     public static Date[] daysOfMonth(int year, int month){
         year -= 1900;
         month -= 1;
@@ -154,6 +159,11 @@ public class Utilities {
         return days;
     }
 
+    /**
+     * get day of week of given date
+     * @param date
+     * @return
+     */
     public static int dayOfWeek(Date date){
         Calendar c = Calendar.getInstance();
         c.setTime(date);

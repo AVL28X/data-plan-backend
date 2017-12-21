@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Class of tests generated from trace data in CSV
+ */
 public class TestFromCSV {
     public static class UserTest{
         public String userId;
@@ -31,6 +34,7 @@ public class TestFromCSV {
             System.out.println("Pseudo data plan created");
             System.out.println(dataPlanMsg);
 
+            // calibrate parameters
             UserParamResponse userParamsResponse = client.getUserParams(dates, usages, dataPlanMsg.getOverage());
             UserParams userParams = userParamsResponse.getUserParams();
             UserParamsStd userParamsStd = userParamsResponse.getUserParamsStd();
@@ -75,6 +79,12 @@ public class TestFromCSV {
     }
 
 
+    /**
+     * generate dates from start to start + len
+     * @param start
+     * @param len
+     * @return
+     */
     public static Date[] generateDates(Date start, int len){
         Date[] dates = new Date[len];
         for (int i = 0; i < len; i++) {
@@ -84,6 +94,11 @@ public class TestFromCSV {
         return dates;
     }
 
+    /**
+     * generate an array of test cases from csv
+     * @param fname
+     * @return
+     */
     public static UserTest[] generateUserTestsFromCSV(String fname){
         CSVReader reader;
         try {

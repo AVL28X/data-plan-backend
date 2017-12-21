@@ -16,11 +16,9 @@
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,7 +30,7 @@ public class DataPlanClient {
     private final DataPlanServiceGrpc.DataPlanServiceBlockingStub blockingStub;
 
     /**
-     * Construct client connecting to HelloWorld server at {@code host:port}.
+     * Construct client connecting to Data Plan server at host:port
      */
     public DataPlanClient(String host, int port) {
         this(ManagedChannelBuilder.forAddress(host, port)
@@ -54,6 +52,10 @@ public class DataPlanClient {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
+    /**
+     * generate dates of current month for testing
+     * @return
+     */
     public static Date[] generateTestDates(){
         Date[] dates = new Date[30];
         Date today = new Date();
@@ -64,6 +66,11 @@ public class DataPlanClient {
         return dates;
     }
 
+    /**
+     * generate random usages, usage[i] = (i % 7) * 10 + Math.random() * 1;
+     * @param dates
+     * @return
+     */
     public static double[] generateRandomUsages(Date[] dates){
         double[] usages = new double[dates.length];
         for (int i = 0; i < dates.length; i++) {
@@ -72,25 +79,13 @@ public class DataPlanClient {
         return usages;
     }
 
-//    public static UserParamRequest createUserParamRequest() {
-//        double[] usages = new double[30];
-//        Date[] dates = new Date[30];
-//
-//        UserParamRequest.Builder builder = UserParamRequest.newBuilder();
-//        Date today = new Date();
-//        for (int i = 0; i < 30; i++) {
-//            usages[i] = (i % 7) * 10 + Math.random() * 1;
-//            Date date = new Date(today.getTime() + (1000 * 60 * 60 * 24 * i));
-//            dates[i] = date;
-//            Usage usage = Usage.newBuilder().setUsage(usages[i]).setDay(date.getDay()).setMonth(date.getMonth()).setYear(date.getYear()).build();
-//            builder.addUsages(usage);
-//        }
-//        builder.setOverage(0.01);
-//
-//        return builder.build();
-//    }
-
-
+    /**
+     * get calibrated user parameters from server
+     * @param dates
+     * @param usages
+     * @param overage - overage charge
+     * @return - calibrated user parameter
+     */
     public UserParamResponse getUserParams(Date[] dates, double[] usages, double overage) {
 
         UserParamRequest.Builder builder = UserParamRequest.newBuilder();
@@ -103,24 +98,48 @@ public class DataPlanClient {
         return this.blockingStub.getUserParam(builder.build());
     }
 
+    /**
+     * get recommended usages of current month from server
+     * @param year
+     * @param month
+     * @param userParams
+     * @param dataPlanMsg
+     * @return
+     */
     public UsagesResponse getRecommendUsages(int year, int month, UserParams userParams, DataPlanMsg dataPlanMsg){
         RecommendUsagesRequest request = RecommendUsagesRequest.newBuilder().setDataPlan(dataPlanMsg).setUserParams(userParams).setYear(year).setMonth(month).build();
         return this.blockingStub.getRecommendUsages(request);
     }
 
+    /**
+     * get unility of user and data plan
+     * @param userParams
+     * @param dataPlanMsg
+     * @return utility
+     */
     public double getUtility(UserParams userParams, DataPlanMsg dataPlanMsg){
         UtilityRequest request = UtilityRequest.newBuilder().setDataPlan(dataPlanMsg).setUserParams(userParams).build();
         UtilityResponse response = this.blockingStub.getUtility(request);
         return response.getUtility();
     }
 
+    /**
+     * get recommended data plan
+     * @param userParams
+     * @return a list of data plans
+     */
     public List<DataPlanMsg> getRecommendDataPlans(UserParams userParams){
         DataPlanRequest request = DataPlanRequest.newBuilder().setUserParams(userParams).build();
         DataPlanResponse response = this.blockingStub.getRecommendedDataPlans(request);
         return response.getDataPlansList();
     }
 
-    //get detailed utilities of data plans
+    /**
+     * get detailed utilities of data plans
+     * @param userParams
+     * @param userParamsStd
+     * @return sorted data plans with max, min utilities
+     */
     public List<DataPlanMsg2> getRecommendDataPlans2(UserParams userParams, UserParamsStd userParamsStd){
         DataPlanRequest2 request = DataPlanRequest2.newBuilder().setUserParams(userParams).setUserParamsStd(userParamsStd).build();
         DataPlanResponse2 response = this.blockingStub.getRecommendedDataPlans2(request);
@@ -140,6 +159,9 @@ public class DataPlanClient {
         return modifiableList;
     }
 
+    /**
+     * Hello word for testing
+     */
     public void helloWorld(){
         HWRequest request = HWRequest.newBuilder().setWord("Hello from client").build();
         System.out.println(request);
@@ -148,11 +170,11 @@ public class DataPlanClient {
     }
 
     /**
-     * Greet server. If provided, the first element of {@code args} is the name to use in the
-     * greeting.
+     * Test the data plan client and server from server side
+     * @param args
+     * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        //String host = "ec2-34-211-226-27.us-west-2.compute.amazonaws.com";
         String host = "localhost";
         DataPlanClient client = new DataPlanClient(host, 50051);
 

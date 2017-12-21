@@ -1,18 +1,20 @@
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * class of user
+ */
 public class User {
     public enum UserType{
         LIGHT, MODERATE, HEAVY
     }
 
     public String userId;
-
-    public double[] dailyUsages;
+    public double[] dailyUsages;  //daily usages of past month
     public double[] dailyWeights;
-    public double alpha = 0.4;
-    public double phi = 0.008;
-    public DataPlan currentDataPlan;
+    public double alpha = 0.4;  //alpha in the papaer
+    public double phi = 0.008;  //phi in the paper
+    public DataPlan currentDataPlan;  //current data plan
 
     public User(){
         dailyUsages = new double[30];
@@ -30,11 +32,18 @@ public class User {
         this.dailyWeights = dailyWeights;
     }
 
+    /**
+     * calculate utility of user's current data plan
+     */
     public double calculateUtility(){
         return Utilities.calculateDataPlanUtility(this, this.currentDataPlan);
     }
 
-
+    /**
+     * get recommended data plan given an array of data plans
+     * @param dataPlans
+     * @return
+     */
     public DataPlan getRecommendedPlan(DataPlan[] dataPlans){
         DataPlan bestDP = this.currentDataPlan;
         double bestUtility = calculateUtility();

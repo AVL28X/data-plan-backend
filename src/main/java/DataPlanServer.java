@@ -64,6 +64,12 @@ public class DataPlanServer {
         server.blockUntilShutdown();
     }
 
+    /**
+     * convert userParameter to user object
+     * @param userParams
+     * @return
+     */
+
     public static User convertUserParamsToUser(UserParams userParams){
         double[] weights = new double[28];
         for(int i = 0; i < weights.length; i++){
@@ -105,7 +111,7 @@ public class DataPlanServer {
     }
 
     /**
-     * generate a random normal user using given user parameters and standard deviation
+     * generate a random normal simulated user using given user parameters and standard deviation
      * @param userParams
      * @param userParamsStd
      * @return
@@ -155,6 +161,11 @@ public class DataPlanServer {
      * Implementation of GetUserParams API
      */
     static class DataPlanServiceImpl extends DataPlanServiceGrpc.DataPlanServiceImplBase {
+        /**
+         * API for user parameter calibration, and calculate standard deviation of parameters using simulations
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void getUserParam(UserParamRequest request, StreamObserver<UserParamResponse> responseObserver){
             try {
@@ -210,6 +221,11 @@ public class DataPlanServer {
             }
         }
 
+        /**
+         * API for data plan recommendation, calculate utilities of all data plans, and return top 5 data plans
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void getRecommendedDataPlans(DataPlanRequest request, StreamObserver<DataPlanResponse> responseObserver) {
             //Get available dataplans from server side
@@ -232,7 +248,11 @@ public class DataPlanServer {
             responseObserver.onCompleted();
         }
 
-
+        /**
+         *API for data plan recommendations, calculate utilities and 5% and 95% of simulated utilities of data plans
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void getRecommendedDataPlans2(DataPlanRequest2 request, StreamObserver<DataPlanResponse2> responseObserver) {
 
@@ -287,6 +307,12 @@ public class DataPlanServer {
             responseObserver.onCompleted();
         }
 
+        /**
+         * write recommended usages and dates to csv
+         * @param dates
+         * @param usages
+         * @throws IOException
+         */
         public void generateUsagesCSV(Date[] dates, double[] usages) throws IOException {
             CSVWriter writer = new CSVWriter(new FileWriter("visualizer/static/data.csv"), ',');
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -301,6 +327,11 @@ public class DataPlanServer {
             writer.close();
         }
 
+        /**
+         * API for daily usage recommendations
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void getRecommendUsages(RecommendUsagesRequest request, StreamObserver<UsagesResponse> responseObserver) {
             //create data plan and user from request
@@ -349,6 +380,7 @@ public class DataPlanServer {
             user.setPhi(request.getUserParams().getPhi());
             double[] usages = Utilities.getOptimalUsages(user, dp);
 
+            // write recommended usages to csv
             try {
                 generateUsagesCSV(dates, usages);
             } catch (IOException e) {
@@ -365,6 +397,11 @@ public class DataPlanServer {
             responseObserver.onCompleted();
         }
 
+        /**
+         * API for utility calculation
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void getUtility(UtilityRequest request, StreamObserver<UtilityResponse> responseObserver) {
             //create data plan and user from request
@@ -385,7 +422,11 @@ public class DataPlanServer {
         }
 
 
-
+        /**
+         * API of Hello world
+         * @param request
+         * @param responseObserver
+         */
         @Override
         public void helloWorld(HWRequest request, StreamObserver<HWResponse> responseObserver) {
             System.out.println("Request: hello World");
